@@ -1,0 +1,64 @@
+<% content_for :title, "Chats - SportsBiff" %>
+
+<div class="flex h-[calc(100vh-4rem)] w-full">
+  <!-- Sidebar -->
+  <%= render partial: "chats/sidebar", locals: { team_channels: @team_channels, chats: @chats, current_chat: nil } %>
+
+  <!-- Main content area -->
+  <div class="flex-1 flex items-center justify-center bg-gray-900">
+    <div class="text-center max-w-md px-4">
+      <div class="text-6xl mb-4">
+        <% if current_user.favorite_sports.include?("NFL") %>
+          🏈
+        <% elsif current_user.favorite_sports.include?("NBA") %>
+          🏀
+        <% elsif current_user.favorite_sports.include?("EPL") %>
+          ⚽
+        <% else %>
+          🏆
+        <% end %>
+      </div>
+      <h2 class="text-2xl font-bold text-white mb-2">Welcome to SportsBiff</h2>
+      <p class="text-gray-400 mb-6">Your personalized sports companion. Ask about your favorite teams, get news, scores, and insights.</p>
+
+      <%= link_to chats_path, data: { turbo_method: :post }, class: "inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition" do %>
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+        </svg>
+        Start a Conversation
+      <% end %>
+
+      <% if @team_channels.present? %>
+        <div class="mt-8 text-left">
+          <p class="text-sm text-gray-500 mb-3">Or check your team channels:</p>
+          <div class="space-y-2">
+            <% @team_channels.first(3).each do |channel| %>
+              <% team = channel.team %>
+              <%= link_to channel, class: "flex items-center gap-3 bg-gray-800 hover:bg-gray-700 px-4 py-3 rounded-lg transition" do %>
+                <% if team&.logo_url.present? %>
+                  <img src="<%= team.logo_url %>" alt="<%= team.name %>" style="width: 32px; height: 32px; object-fit: contain; flex-shrink: 0;">
+                <% end %>
+                <span class="text-gray-300"><%= team&.name %> News</span>
+              <% end %>
+            <% end %>
+          </div>
+        </div>
+      <% else %>
+        <div class="mt-8 text-left">
+          <p class="text-sm text-gray-500 mb-3">Try asking:</p>
+          <div class="space-y-2">
+            <% team_names = current_user.favorite_team_names.first(2) %>
+            <% if team_names.present? %>
+              <div class="text-sm text-gray-400 bg-gray-800 px-3 py-2 rounded">"How are the <%= team_names.first %> doing?"</div>
+              <div class="text-sm text-gray-400 bg-gray-800 px-3 py-2 rounded">"What's the latest news on <%= team_names.last || team_names.first %>?"</div>
+            <% else %>
+              <div class="text-sm text-gray-400 bg-gray-800 px-3 py-2 rounded">"What games are on today?"</div>
+              <div class="text-sm text-gray-400 bg-gray-800 px-3 py-2 rounded">"What are the latest sports headlines?"</div>
+            <% end %>
+            <div class="text-sm text-gray-400 bg-gray-800 px-3 py-2 rounded">"What are the odds for Sunday's games?"</div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

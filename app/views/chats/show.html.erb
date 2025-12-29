@@ -1,0 +1,68 @@
+<% content_for :title, "#{@chat.display_title} - SportsBiff" %>
+
+<div class="flex h-[calc(100vh-4rem)] w-full">
+  <!-- Sidebar -->
+  <%= render partial: "chats/sidebar", locals: { team_channels: @team_channels, chats: @chats, current_chat: @chat } %>
+
+  <!-- Chat area -->
+  <div class="flex-1 flex flex-col bg-gray-900">
+    <%= turbo_stream_from @chat %>
+
+    <!-- Messages -->
+    <div id="messages" class="flex-1 overflow-y-auto p-4 space-y-4">
+      <% if @messages.empty? %>
+        <div class="text-center py-12">
+          <div class="text-4xl mb-4">
+            <% if current_user.favorite_sports.include?("NFL") %>
+              🏈
+            <% elsif current_user.favorite_sports.include?("NBA") %>
+              🏀
+            <% elsif current_user.favorite_sports.include?("EPL") %>
+              ⚽
+            <% else %>
+              🏆
+            <% end %>
+          </div>
+          <p class="text-gray-400">Ask me anything about sports!</p>
+          <% if current_user.favorite_team_names.present? %>
+            <p class="text-gray-500 text-sm mt-2">I know all about <%= current_user.favorite_team_names.to_sentence %>.</p>
+          <% end %>
+        </div>
+      <% end %>
+
+      <% @messages.each do |message| %>
+        <%= render partial: "messages/message", locals: { message: message } %>
+      <% end %>
+    </div>
+
+    <!-- Input form -->
+    <div class="border-t border-gray-700 p-4">
+      <div id="message_form">
+        <%= render partial: "messages/form", locals: { chat: @chat, message: @message } %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Auto-scroll to bottom on page load and new messages
+  document.addEventListener("turbo:load", function() {
+    const messages = document.getElementById("messages");
+    if (messages) {
+      messages.scrollTop = messages.scrollHeight;
+    }
+  });
+
+  // Observe for new messages
+  const observer = new MutationObserver(function(mutations) {
+    const messages = document.getElementById("messages");
+    if (messages) {
+      messages.scrollTop = messages.scrollHeight;
+    }
+  });
+
+  const messagesContainer = document.getElementById("messages");
+  if (messagesContainer) {
+    observer.observe(messagesContainer, { childList: true, subtree: true });
+  }
+</script>

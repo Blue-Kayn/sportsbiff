@@ -1,0 +1,15 @@
+<div class="flex <%= message.user? ? 'justify-end' : 'justify-start' %>">
+  <div class="max-w-2xl <%= message.user? ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-100' %> rounded-lg px-4 py-3">
+    <% if message.assistant? %>
+      <div class="flex items-center gap-2 mb-2 text-xs text-gray-400">
+        <span class="font-semibold text-blue-400">SportsBiff</span>
+      </div>
+    <% end %>
+    <div class="prose prose-invert prose-sm max-w-none">
+      <%= simple_format(message.content) %>
+    </div>
+    <div class="text-xs <%= message.user? ? 'text-blue-200' : 'text-gray-500' %> mt-2">
+      <%= time_ago_in_words(message.created_at) %> ago
+    </div>
+  </div>
+</div>

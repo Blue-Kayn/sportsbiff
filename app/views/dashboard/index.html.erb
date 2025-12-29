@@ -1,0 +1,54 @@
+<% content_for :title, "Dashboard - SportsBiff" %>
+
+<div class="max-w-4xl mx-auto py-8 px-4">
+  <h1 class="text-3xl font-bold text-white mb-8">Dashboard</h1>
+
+  <!-- Stats -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="bg-gray-800 rounded-lg p-6">
+      <div class="text-gray-400 text-sm mb-1">Queries Today</div>
+      <div class="text-3xl font-bold text-white"><%= current_user.daily_query_count %></div>
+      <div class="text-gray-500 text-sm"><%= @queries_remaining %> remaining</div>
+    </div>
+    <div class="bg-gray-800 rounded-lg p-6">
+      <div class="text-gray-400 text-sm mb-1">Daily Limit</div>
+      <div class="text-3xl font-bold text-white"><%= @daily_limit %></div>
+      <div class="text-gray-500 text-sm capitalize"><%= current_user.subscription_tier %> plan</div>
+    </div>
+    <div class="bg-gray-800 rounded-lg p-6">
+      <div class="text-gray-400 text-sm mb-1">Total Chats</div>
+      <div class="text-3xl font-bold text-white"><%= current_user.chats.count %></div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="bg-gray-800 rounded-lg p-6 mb-8">
+    <h2 class="text-xl font-semibold text-white mb-4">Quick Actions</h2>
+    <div class="flex gap-4">
+      <%= link_to chats_path, data: { turbo_method: :post }, class: "flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition" do %>
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+        </svg>
+        New Chat
+      <% end %>
+      <%= link_to "View All Chats", chats_path, class: "flex items-center gap-2 bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium transition" %>
+    </div>
+  </div>
+
+  <!-- Recent Chats -->
+  <div class="bg-gray-800 rounded-lg p-6">
+    <h2 class="text-xl font-semibold text-white mb-4">Recent Chats</h2>
+    <% if @recent_chats.any? %>
+      <div class="space-y-3">
+        <% @recent_chats.each do |chat| %>
+          <%= link_to chat, class: "block bg-gray-700 hover:bg-gray-600 rounded-lg p-4 transition" do %>
+            <div class="font-medium text-white"><%= chat.display_title %></div>
+            <div class="text-sm text-gray-400"><%= time_ago_in_words(chat.updated_at) %> ago</div>
+          <% end %>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="text-gray-400">No chats yet. Start a conversation to get NFL betting insights!</p>
+    <% end %>
+  </div>
+</div>

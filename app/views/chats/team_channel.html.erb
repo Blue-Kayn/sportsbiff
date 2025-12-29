@@ -1,0 +1,170 @@
+<% content_for :title, "#{@team&.name || 'Team'} - SportsBiff" %>
+
+<% primary_color = @team&.primary_color || '#3B82F6' %>
+<% secondary_color = @team&.secondary_color || '#1F2937' %>
+
+<div class="flex h-[calc(100vh-4rem)] w-full">
+  <!-- Sidebar -->
+  <%= render partial: "chats/sidebar", locals: { team_channels: @team_channels, chats: @chats, current_chat: @chat } %>
+
+  <!-- Team Channel Content -->
+  <div class="flex-1 flex flex-col" style="background: linear-gradient(180deg, <%= primary_color %>15 0%, #111827 100%);">
+    <!-- Team Header -->
+    <div class="p-6 border-b border-gray-700" style="background: linear-gradient(90deg, <%= primary_color %>30 0%, <%= secondary_color %>30 100%);">
+      <div class="flex items-center gap-4">
+        <% if @team&.logo_url.present? %>
+          <img src="<%= @team.logo_url %>"
+               alt="<%= @team.name %>"
+               style="width: 48px; height: 48px; object-fit: contain;">
+        <% end %>
+        <div>
+          <h1 class="text-2xl font-bold text-white"><%= @team&.name %></h1>
+          <p class="text-gray-400"><%= @team&.sport %> News & Updates</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- News Feed (Read-only) -->
+    <div class="flex-1 overflow-y-auto p-6 space-y-6">
+      <!-- Upcoming Games -->
+      <% if @upcoming_games.present? %>
+        <div class="bg-gray-800/50 rounded-xl p-4 border border-gray-700">
+          <h2 class="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+            <span style="color: <%= primary_color %>;">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+              </svg>
+            </span>
+            Today's Games
+          </h2>
+          <div class="space-y-2">
+            <% @upcoming_games.each do |game| %>
+              <div class="flex items-center justify-between bg-gray-700/50 rounded-lg p-3">
+                <div class="flex items-center gap-3">
+                  <span class="text-white font-medium"><%= game[:away][:name] %></span>
+                  <span class="text-gray-500">@</span>
+                  <span class="text-white font-medium"><%= game[:home][:name] %></span>
+                </div>
+                <div class="text-sm" style="color: <%= primary_color %>;">
+                  <% if game[:status] == "in" %>
+                    <span class="animate-pulse">LIVE</span>
+                    <span class="ml-2"><%= game[:away][:score] %> - <%= game[:home][:score] %></span>
+                  <% else %>
+                    <%= game[:time] %>
+                  <% end %>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+
+      <!-- Recent Results -->
+      <% if @recent_games.present? %>
+        <div class="bg-gray-800/50 rounded-xl p-4 border border-gray-700">
+          <h2 class="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+            <span style="color: <%= primary_color %>;">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </span>
+            Recent Results
+          </h2>
+          <div class="space-y-2">
+            <% @recent_games.each do |game| %>
+              <div class="flex items-center justify-between bg-gray-700/50 rounded-lg p-3">
+                <div class="text-white"><%= game[:result] %></div>
+                <div class="text-sm text-gray-400">
+                  <% if game[:date].respond_to?(:strftime) %>
+                    <%= game[:date].strftime("%b %d") %>
+                  <% elsif game[:date].present? %>
+                    <%= Date.parse(game[:date].to_s).strftime("%b %d") rescue game[:date] %>
+                  <% end %>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+
+      <!-- Latest News -->
+      <div class="bg-gray-800/50 rounded-xl p-4 border border-gray-700">
+        <h2 class="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+          <span style="color: <%= primary_color %>;">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path>
+            </svg>
+          </span>
+          Latest News
+        </h2>
+
+        <% if @news_items.present? %>
+          <div class="space-y-4">
+            <% @news_items.each do |news| %>
+              <div class="bg-gray-700/50 rounded-lg p-4 hover:bg-gray-700/70 transition">
+                <h3 class="text-white font-medium mb-1"><%= news[:headline] %></h3>
+                <% if news[:description].present? %>
+                  <p class="text-gray-400 text-sm line-clamp-2"><%= news[:description] %></p>
+                <% end %>
+                <div class="flex items-center gap-2 mt-2 text-xs text-gray-500">
+                  <% if news[:source].present? %>
+                    <span><%= news[:source] %></span>
+                    <span>•</span>
+                  <% end %>
+                  <span>
+                    <% if news[:published_at].respond_to?(:strftime) %>
+                      <%= news[:published_at].strftime("%b %d, %Y") %>
+                    <% elsif news[:published_at].present? %>
+                      <%= Date.parse(news[:published_at].to_s).strftime("%b %d, %Y") rescue "Recent" %>
+                    <% else %>
+                      Recent
+                    <% end %>
+                  </span>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        <% else %>
+          <div class="text-center py-8">
+            <div class="mb-3" style="color: <%= primary_color %>;">
+              <svg style="width: 48px; height: 48px; margin: 0 auto; opacity: 0.5;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path>
+              </svg>
+            </div>
+            <p class="text-gray-400">No recent news about <%= @team&.name %> right now.</p>
+            <p class="text-gray-500 text-sm mt-1">News will appear here when ESPN publishes stories about your team.</p>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- AI Summary Section -->
+      <div class="bg-gray-800/50 rounded-xl p-4 border border-gray-700" style="border-left: 3px solid <%= primary_color %>;">
+        <h2 class="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+          <span style="color: <%= primary_color %>;">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+            </svg>
+          </span>
+          Want to ask about <%= @team&.name %>?
+        </h2>
+        <p class="text-gray-400 text-sm mb-3">Start a new chat to ask questions about your team!</p>
+        <%= link_to chats_path, data: { turbo_method: :post }, class: "inline-flex items-center gap-2 text-white font-medium py-2 px-4 rounded-lg transition", style: "background-color: #{primary_color};" do %>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+          </svg>
+          Start Chat
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Read-only Notice -->
+    <div class="border-t border-gray-700 p-4 text-center">
+      <p class="text-gray-500 text-sm">
+        <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        This is a news feed for <%= @team&.name %>. Start a new chat to ask questions.
+      </p>
+    </div>
+  </div>
+</div>

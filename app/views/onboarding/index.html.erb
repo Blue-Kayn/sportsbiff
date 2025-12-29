@@ -1,0 +1,41 @@
+<% content_for :title, "Pick Your Sports - SportsBiff" %>
+
+<div class="text-center mb-8">
+  <h1 class="text-3xl font-bold text-white mb-2">Welcome to SportsBiff!</h1>
+  <p class="text-gray-400">Let's personalize your experience. What sports do you follow?</p>
+</div>
+
+<!-- Progress indicator -->
+<div class="flex items-center justify-center gap-2 mb-8">
+  <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold">1</div>
+  <div class="w-12 h-1 bg-gray-700"></div>
+  <div class="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-gray-400 font-bold">2</div>
+  <div class="w-12 h-1 bg-gray-700"></div>
+  <div class="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-gray-400 font-bold">3</div>
+</div>
+
+<%= form_with url: onboarding_sports_path, method: :post, class: "space-y-6" do |f| %>
+  <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+    <% @sports.each do |sport| %>
+      <label class="relative cursor-pointer">
+        <input type="checkbox"
+               name="sports[]"
+               value="<%= sport %>"
+               class="peer sr-only"
+               <%= 'checked' if @selected_sports.include?(sport) %>>
+        <div class="bg-gray-800 border-2 border-gray-700 rounded-xl p-6 text-center transition-all
+                    peer-checked:border-blue-500 peer-checked:bg-blue-500/10
+                    hover:border-gray-600">
+          <div class="text-4xl mb-2"><%= sport_emoji(sport) %></div>
+          <div class="font-semibold text-white"><%= sport_display_name(sport) %></div>
+        </div>
+      </label>
+    <% end %>
+  </div>
+
+  <div class="pt-4">
+    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition">
+      Continue
+    </button>
+  </div>
+<% end %>

@@ -1,0 +1,60 @@
+<div class="w-64 bg-gray-800 border-r border-gray-700 flex flex-col">
+  <div class="p-4">
+    <%= link_to chats_path, data: { turbo_method: :post }, class: "w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition" do %>
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+      </svg>
+      New Chat
+    <% end %>
+  </div>
+
+  <div class="flex-1 overflow-y-auto">
+    <!-- Team Channels Section -->
+    <% if team_channels.present? %>
+      <div class="px-4 py-2">
+        <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Your Teams</div>
+      </div>
+      <% team_channels.each do |channel| %>
+        <% team = channel.team %>
+        <% is_active = defined?(current_chat) && channel == current_chat %>
+        <%= link_to channel, class: "flex items-center gap-3 px-4 py-2 text-gray-300 hover:bg-gray-700 border-l-2 transition #{is_active ? 'bg-gray-700' : ''}", style: "border-left-color: #{is_active ? (team&.primary_color || '#3B82F6') : 'transparent'};" do %>
+          <% if team&.logo_url.present? %>
+            <img src="<%= team.logo_url %>"
+                 alt="<%= team.name %>"
+                 style="width: 24px; height: 24px; object-fit: contain; flex-shrink: 0;">
+          <% else %>
+            <div style="width: 24px; height: 24px; flex-shrink: 0; background-color: <%= team&.primary_color || '#3B82F6' %>;" class="rounded-full flex items-center justify-center text-xs font-bold text-white">
+              <%= team&.name&.first || '?' %>
+            </div>
+          <% end %>
+          <div class="flex-1 min-w-0">
+            <div class="text-sm font-medium truncate"><%= team&.name || 'Team' %></div>
+            <div class="text-xs text-gray-500"><%= team&.sport %></div>
+          </div>
+        <% end %>
+      <% end %>
+    <% end %>
+
+    <!-- Regular Chats Section -->
+    <div class="px-4 py-2 mt-4">
+      <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Conversations</div>
+    </div>
+    <% chats.each do |chat| %>
+      <% is_active = defined?(current_chat) && chat == current_chat %>
+      <%= link_to chat, class: "block px-4 py-3 text-gray-300 hover:bg-gray-700 border-l-2 #{is_active ? 'border-blue-500 bg-gray-700' : 'border-transparent'}" do %>
+        <div class="text-sm font-medium truncate"><%= chat.display_title %></div>
+        <div class="text-xs text-gray-500"><%= time_ago_in_words(chat.updated_at) %> ago</div>
+      <% end %>
+    <% end %>
+
+    <% if chats.empty? && team_channels.empty? %>
+      <div class="px-4 py-8 text-center text-gray-500 text-sm">
+        No chats yet. Start a new conversation!
+      </div>
+    <% elsif chats.empty? %>
+      <div class="px-4 py-4 text-center text-gray-500 text-sm">
+        No conversations yet.
+      </div>
+    <% end %>
+  </div>
+</div>
