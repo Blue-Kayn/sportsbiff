@@ -1,8 +1,10 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides quick reference for Claude Code when working with Sports Biff.
 
-## Commands
+**For full documentation, see: [docs/](./docs/)**
+
+## Quick Commands
 
 ```bash
 # Development
@@ -31,20 +33,28 @@ rails odds:refresh               # Manual odds/market data refresh
 
 ## Project Overview
 
-**SportsBiff** is a personalized sports companion for serious fans. Users select their favorite teams, get a personalized experience themed to those teams, and can ask natural language questions about sports. The app provides real-time news, scores, schedules, and market intelligence.
+**SportsBiff** is a personalized sports companion SaaS for serious fans.
 
-**Goal**: Build a beloved daily-use app for sports fans, with potential £10M+ acquisition.
+**Goal**: Build a beloved daily-use app with £10M+ acquisition potential.
 
-### Core Value Proposition
-1. **Personalization** - App adapts to YOUR teams (theming, news priority, notifications)
-2. **Opinionated Summaries** - "What matters today" not "everything that happened"
-3. **Market Intelligence** - Odds context as information, not betting advice
-4. **Conversational** - Ask anything about sports in plain English
+### Core Features
+- Personalized AI chat about your favorite teams
+- Team channels (read-only news feeds per team)
+- Real-time scores, schedules, news from SportsDataIO (NFL) and ESPN (NBA, EPL)
+- Market intelligence from The Odds API
+- Rate limiting by subscription tier (Free/Basic/Pro)
 
-### Target Users
-- Serious sports fans who follow multiple teams
-- People who want curated, relevant updates (not firehose of content)
-- Fans who may also bet, but primarily identify as FANS first
+### Documentation Index
+
+- [README](./docs/README.md) - Quick start guide
+- [CHANGELOG](./CHANGELOG.md) - Project history
+- [Architecture Overview](./docs/architecture/overview.md) - System design
+- [Data Flow](./docs/architecture/data-flow.md) - Request/response flows
+- [API Integrations](./docs/architecture/api-integrations.md) - External APIs
+- [Models](./docs/models/README.md) - Database schema
+- [Services](./docs/services/README.md) - Business logic
+- [Controllers](./docs/controllers/README.md) - HTTP handling
+- [Features](./docs/features/README.md) - Feature guides
 
 ## Architecture
 
@@ -211,9 +221,9 @@ injury status changes before Sunday."
 
 ## Environment Variables
 ```
-OPENAI_API_KEY=
-ODDS_API_KEY=
-NEWS_API_KEY=          # If using NewsAPI
+OPENAI_API_KEY=        # OpenAI GPT-4o mini
+SPORTSDATA_API_KEY=    # SportsDataIO NFL API (required for NFL data)
+ODDS_API_KEY=          # The Odds API (optional, for betting data)
 DATABASE_URL=          # For production
 RAILS_MASTER_KEY=      # For credentials
 ```
@@ -261,11 +271,12 @@ Add later: Boxing, Golf, College sports
 - [x] Team model with colors, logos, api_id
 - [x] User onboarding wizard (sport selection → team selection)
 - [x] ContextBuilder service (assembles real-time data for AI)
-- [x] SportsDataService (ESPN API integration)
+- [x] SportsDataService (ESPN API integration for NBA, EPL)
+- [x] **SportsDataIO integration for NFL** (comprehensive NFL data)
 - [x] NewsService (ESPN news headlines)
 - [x] Team channels in sidebar (read-only news feeds per team)
 - [x] System prompt updated for sports companion persona
-- [ ] **NEXT**: Historical sports data (structured database, not web search)
+- [ ] **NEXT**: Add SportsDataIO API key and test NFL queries
 
 ## Demo Accounts
 After running `rails db:seed`:
@@ -412,6 +423,54 @@ Orchestrates AI responses:
 
 This separates **knowledge** (databases) from **reasoning** (LLM).
 
+## SportsDataIO NFL Integration
+
+### Architecture
+
+The NFL data integration uses a sophisticated, enterprise-grade architecture with:
+
+1. **Lazy Loading**: Only fetches data needed for each question
+2. **Smart Caching**: Different TTLs based on data volatility (3 seconds for live games, 4 hours for teams)
+3. **Query Routing**: Automatically determines which endpoints to call based on question patterns
+4. **Context Assembly**: Builds formatted context for AI consumption
+
+### Service Structure
+
+```
+app/services/sports_data_io/
+├── base_client.rb           # HTTP client with auth & caching
+├── cache_manager.rb         # Rails.cache wrapper with TTL
+├── endpoint_registry.rb     # All 100+ NFL API endpoints
+├── context_service.rb       # Season/week bootstrap
+├── query_router.rb          # Question → endpoints mapping
+└── builders/
+    └── context_builder.rb   # AI context assembly
+```
+
+### How It Works
+
+1. **User asks**: "When is the next Giants game?"
+2. **Query Router** detects: schedule question + Giants team
+3. **Fetches**: current season/week + schedules for Giants
+4. **Formats**: "## Upcoming Games\n- NYG @ DAL - Jan 5, 2025..."
+5. **AI responds** with exact date and context
+
+### Key Endpoints Used
+
+- `current_season` / `current_week` - Temporal context (TTL: 5 min)
+- `schedules` - Full season schedule (TTL: 3 min)
+- `scores_by_week` - Live/recent scores (TTL: 5 sec)
+- `standings` - Current standings (TTL: 5 min)
+- `injuries_all` - Injury reports (TTL: 5 min)
+- `news` - Latest news (TTL: 3 min)
+
+### Adding Your API Key
+
+1. Sign up at [SportsDataIO](https://sportsdata.io/)
+2. Get your NFL API key
+3. Add to `.env`: `SPORTSDATA_API_KEY=your_key_here`
+4. Restart Rails server
+
 ## Notes
 - This is a SPORTS COMPANION, not a betting app
 - Personalization is the differentiator
@@ -419,3 +478,4 @@ This separates **knowledge** (databases) from **reasoning** (LLM).
 - Keep code simple - MVP demo in 2 weeks
 - Ask before making architectural changes
 - **Never use web search for facts** - use structured databases
+- **NFL data now comes from SportsDataIO** - more reliable than ESPN unofficial API

@@ -18,7 +18,7 @@
     <%= javascript_importmap_tags %>
   </head>
 
-  <body class="h-full bg-gray-900 text-white">
+  <body class="h-full text-white" style="background: var(--bg-primary, #0a1628);">
     <% if user_signed_in? %>
       <%= render "shared/navbar" %>
     <% end %>

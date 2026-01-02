@@ -31,6 +31,9 @@ gem "faraday", "~> 2.0"
 # OpenAI API
 gem "ruby-openai", "~> 7.0"
 
+# Load environment variables from .env file
+gem "dotenv-rails", groups: [:development, :test]
+
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[ windows jruby ]
 

@@ -45,8 +45,10 @@ class ChatsController < ApplicationController
   end
 
   def ensure_team_channels_exist
-    current_user.favorite_teams.each do |team_info|
-      team_id = team_info["team_id"]
+    favorite_team_ids = current_user.favorite_teams.map { |t| t["team_id"] }
+
+    # Create channels for new favorite teams
+    favorite_team_ids.each do |team_id|
       next if current_user.chats.team_channels.exists?(team_id: team_id)
 
       current_user.chats.create!(
@@ -54,31 +56,41 @@ class ChatsController < ApplicationController
         is_team_channel: true
       )
     end
+
+    # Remove channels for teams no longer favorited
+    current_user.chats.team_channels.where.not(team_id: favorite_team_ids).destroy_all
   end
 
   def load_team_news
     @team = @chat.team
     return unless @team
 
-    news_service = NewsService.new
-    sports_service = SportsDataService.new
+    # Use new dashboard service for NFL teams
+    if @team.sport == "NFL"
+      dashboard_service = TeamDashboardService.new(@team)
+      @dashboard = dashboard_service.build_dashboard
+    else
+      # Fall back to old ESPN-based news for non-NFL teams
+      news_service = NewsService.new
+      sports_service = SportsDataService.new
 
-    # Fetch team-specific news only (filtered by team name mentions)
-    @news_items = news_service.team_news(@team)
+      # Fetch team-specific news only (filtered by team name mentions)
+      @news_items = news_service.team_news(@team)
 
-    # Get recent game results (last 10 games) and format them for display
-    raw_results = sports_service.recent_results([ @team.api_id ], days: 120, limit: 10)
-    @recent_games = raw_results.map do |game|
-      home = game[:home_team]
-      away = game[:away_team]
-      {
-        result: "#{away[:name]} #{away[:score]} @ #{home[:name]} #{home[:score]}",
-        date: game[:date],
-        winner: home[:winner] ? home[:name] : away[:name]
-      }
+      # Get recent game results (last 10 games) and format them for display
+      raw_results = sports_service.recent_results([ @team.api_id ], days: 120, limit: 10)
+      @recent_games = raw_results.map do |game|
+        home = game[:home_team]
+        away = game[:away_team]
+        {
+          result: "#{away[:name]} #{away[:score]} @ #{home[:name]} #{home[:score]}",
+          date: game[:date],
+          winner: home[:winner] ? home[:name] : away[:name]
+        }
+      end
+
+      # Get today's upcoming games
+      @upcoming_games = sports_service.games_for_teams([ @team.api_id ], Date.today)
     end
-
-    # Get today's upcoming games
-    @upcoming_games = sports_service.games_for_teams([ @team.api_id ], Date.today)
   end
 end
