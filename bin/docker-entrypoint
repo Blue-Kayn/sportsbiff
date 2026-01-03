@@ -9,6 +9,8 @@ fi
 # If running the rails server then create or migrate existing database
 if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
   ./bin/rails db:prepare
+  # Seed if teams table is empty (first deploy)
+  ./bin/rails runner "exit(Team.count > 0 ? 0 : 1)" || ./bin/rails db:seed
 fi
 
 exec "${@}"
