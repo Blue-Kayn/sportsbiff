@@ -88,7 +88,8 @@ body {
 }
 
 .sidebar-header {
-  padding: 20px;
+  padding: 16px;
+  padding-left: 19px;
   border-bottom: 1px solid var(--border-card);
 }
 
@@ -98,7 +99,7 @@ body {
   background: linear-gradient(135deg, var(--accent-blue) 0%, #1d4ed8 100%);
   color: white;
   font-weight: 600;
-  border-radius: 12px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
