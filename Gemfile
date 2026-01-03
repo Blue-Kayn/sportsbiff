@@ -29,7 +29,7 @@ gem "devise", "~> 4.9"
 gem "faraday", "~> 2.0"
 
 # OpenAI API
-gem "ruby-openai", "~> 7.0"
+gem "ruby-openai", "~> 8.3"
 
 # Load environment variables from .env file
 gem "dotenv-rails", groups: [:development, :test]
