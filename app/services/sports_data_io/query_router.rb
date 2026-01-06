@@ -51,6 +51,57 @@ module SportsDataIO
         patterns: [/news/i, /update/i, /latest/i, /report/i],
         endpoints: [:news, :news_by_team],
         context: [:teams]
+      },
+
+      # Player Stats Questions
+      player_stats: {
+        patterns: [
+          /how did .* do/i, /how many (yards|touchdowns|passes|receptions|carries)/i,
+          /passing yards/i, /rushing yards/i, /receiving yards/i,
+          /quarterback|qb\b/i, /running back|rb\b/i, /wide receiver|wr\b/i,
+          /fantasy points/i, /player stats/i, /stat line/i,
+          /threw for/i, /ran for/i, /caught/i, /completions/i,
+          /interceptions/i, /fumbles/i, /sacks/i
+        ],
+        endpoints: [:player_game_stats_week, :player_season_stats],
+        context: [:teams, :season, :week]
+      },
+
+      # Team Stats Questions
+      team_stats: {
+        patterns: [
+          /team stats/i, /offensive stats/i, /defensive stats/i,
+          /total yards/i, /yards per game/i, /points per game/i,
+          /best offense/i, /best defense/i, /worst offense/i, /worst defense/i,
+          /turnover/i, /red zone/i, /third down/i,
+          /how many points/i, /scoring offense/i, /scoring defense/i,
+          /yards allowed/i, /points allowed/i
+        ],
+        endpoints: [:team_game_stats, :team_season_stats],
+        context: [:teams, :season, :week]
+      },
+
+      # Betting/Odds Questions
+      betting: {
+        patterns: [
+          /odds/i, /spread/i, /line/i, /over.?under/i, /o\/u/i,
+          /moneyline/i, /money line/i, /point spread/i,
+          /favorite/i, /underdog/i, /vegas/i, /betting/i,
+          /what('s| is) the line/i, /who('s| is) favored/i
+        ],
+        endpoints: [:pregame_odds_week, :live_odds_week],
+        context: [:teams, :season, :week]
+      },
+
+      # Depth Chart/Roster Questions
+      roster: {
+        patterns: [
+          /depth chart/i, /starting/i, /starter/i, /backup/i,
+          /roster/i, /who('s| is) starting/i, /first string/i,
+          /second string/i, /lineup/i, /players on/i
+        ],
+        endpoints: [:depth_charts_active, :players_by_team],
+        context: [:teams]
       }
     }.freeze
 

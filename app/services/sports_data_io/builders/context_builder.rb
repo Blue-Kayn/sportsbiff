@@ -195,6 +195,20 @@ module SportsDataIO
           format_news(data, entities)
         when :box_score_v3
           format_box_score(data, entities)
+        when :player_game_stats_week
+          format_player_game_stats(data, entities)
+        when :player_season_stats
+          format_player_season_stats(data, entities)
+        when :team_game_stats
+          format_team_game_stats(data, entities)
+        when :team_season_stats
+          format_team_season_stats(data, entities)
+        when :pregame_odds_week, :live_odds_week
+          format_odds(data, entities)
+        when :depth_charts_active
+          format_depth_charts(data, entities)
+        when :players_by_team
+          format_players_roster(data, entities)
         else
           ""
         end
@@ -397,6 +411,291 @@ module SportsDataIO
         end
 
         lines.join("\n")
+      end
+
+      def format_player_game_stats(data, entities)
+        return "" unless data.is_a?(Array) && data.any?
+
+        team_keys = entities[:teams].map { |t| t["Key"] }
+
+        # Filter to relevant teams if specified
+        relevant = if team_keys.any?
+          data.select { |p| team_keys.include?(p["Team"]) }
+        else
+          data.first(50) # Limit if no team filter
+        end
+
+        return "" if relevant.empty?
+
+        lines = ["## Player Game Stats"]
+
+        # Group by position for readability
+        qbs = relevant.select { |p| p["Position"] == "QB" && (p["PassingYards"].to_i > 0 || p["PassingAttempts"].to_i > 0) }
+        rbs = relevant.select { |p| ["RB", "FB"].include?(p["Position"]) && p["RushingYards"].to_i > 0 }
+        wrs = relevant.select { |p| ["WR", "TE"].include?(p["Position"]) && p["ReceivingYards"].to_i > 0 }
+
+        if qbs.any?
+          lines << "\n### Quarterbacks"
+          qbs.sort_by { |p| -(p["PassingYards"] || 0) }.first(5).each do |p|
+            lines << "- #{p['Name']} (#{p['Team']}): #{p['PassingCompletions']}/#{p['PassingAttempts']}, #{p['PassingYards']} yds, #{p['PassingTouchdowns']} TD, #{p['PassingInterceptions']} INT, #{p['PassingRating']&.round(1)} rating"
+          end
+        end
+
+        if rbs.any?
+          lines << "\n### Rushing"
+          rbs.sort_by { |p| -(p["RushingYards"] || 0) }.first(5).each do |p|
+            lines << "- #{p['Name']} (#{p['Team']}): #{p['RushingAttempts']} carries, #{p['RushingYards']} yds, #{p['RushingTouchdowns']} TD"
+          end
+        end
+
+        if wrs.any?
+          lines << "\n### Receiving"
+          wrs.sort_by { |p| -(p["ReceivingYards"] || 0) }.first(5).each do |p|
+            lines << "- #{p['Name']} (#{p['Team']}): #{p['Receptions']} rec, #{p['ReceivingYards']} yds, #{p['ReceivingTouchdowns']} TD"
+          end
+        end
+
+        lines.join("\n") + "\n"
+      end
+
+      def format_player_season_stats(data, entities)
+        return "" unless data.is_a?(Array) && data.any?
+
+        team_keys = entities[:teams].map { |t| t["Key"] }
+
+        # Filter to relevant teams if specified
+        relevant = if team_keys.any?
+          data.select { |p| team_keys.include?(p["Team"]) }
+        else
+          data.first(100)
+        end
+
+        return "" if relevant.empty?
+
+        lines = ["## Player Season Stats"]
+
+        # Top passers
+        qbs = relevant.select { |p| p["Position"] == "QB" && p["PassingYards"].to_i > 0 }
+        if qbs.any?
+          lines << "\n### Passing Leaders"
+          qbs.sort_by { |p| -(p["PassingYards"] || 0) }.first(5).each do |p|
+            lines << "- #{p['Name']} (#{p['Team']}): #{p['PassingYards']} yds, #{p['PassingTouchdowns']} TD, #{p['PassingInterceptions']} INT, #{p['PassingRating']&.round(1)} rating"
+          end
+        end
+
+        # Top rushers
+        rushers = relevant.select { |p| p["RushingYards"].to_i > 100 }
+        if rushers.any?
+          lines << "\n### Rushing Leaders"
+          rushers.sort_by { |p| -(p["RushingYards"] || 0) }.first(5).each do |p|
+            lines << "- #{p['Name']} (#{p['Team']}): #{p['RushingYards']} yds, #{p['RushingTouchdowns']} TD, #{(p['RushingYards'].to_f / [p['RushingAttempts'].to_i, 1].max).round(1)} avg"
+          end
+        end
+
+        # Top receivers
+        receivers = relevant.select { |p| p["ReceivingYards"].to_i > 100 }
+        if receivers.any?
+          lines << "\n### Receiving Leaders"
+          receivers.sort_by { |p| -(p["ReceivingYards"] || 0) }.first(5).each do |p|
+            lines << "- #{p['Name']} (#{p['Team']}): #{p['Receptions']} rec, #{p['ReceivingYards']} yds, #{p['ReceivingTouchdowns']} TD"
+          end
+        end
+
+        lines.join("\n") + "\n"
+      end
+
+      def format_team_game_stats(data, entities)
+        return "" unless data.is_a?(Array) && data.any?
+
+        team_keys = entities[:teams].map { |t| t["Key"] }
+
+        relevant = if team_keys.any?
+          data.select { |t| team_keys.include?(t["Team"]) }
+        else
+          data
+        end
+
+        return "" if relevant.empty?
+
+        lines = ["## Team Game Stats"]
+
+        relevant.each do |t|
+          lines << "\n### #{t['Team']}"
+          lines << "- Score: #{t['Score']}"
+          lines << "- Total Yards: #{t['OffensiveYards']}"
+          lines << "- Passing: #{t['PassingYards']} yds (#{t['PassingAttempts']} att, #{t['CompletionPercentage']&.round(1)}%)"
+          lines << "- Rushing: #{t['RushingYards']} yds (#{t['RushingAttempts']} att)"
+          lines << "- Turnovers: #{t['Giveaways']} (#{t['FumblesLost']} fumbles, #{t['InterceptionsThrownReturned'] || t['Interceptions']} INT)"
+          lines << "- Time of Possession: #{t['TimeOfPossession']}" if t['TimeOfPossession']
+          lines << "- Third Down: #{t['ThirdDownConversions']}/#{t['ThirdDownAttempts']}" if t['ThirdDownAttempts']
+          lines << "- Red Zone: #{t['GoalToGoConversions']}/#{t['GoalToGoAttempts']}" if t['GoalToGoAttempts']
+        end
+
+        lines.join("\n") + "\n"
+      end
+
+      def format_team_season_stats(data, entities)
+        return "" unless data.is_a?(Array) && data.any?
+
+        team_keys = entities[:teams].map { |t| t["Key"] }
+
+        relevant = if team_keys.any?
+          data.select { |t| team_keys.include?(t["Team"]) }
+        else
+          data
+        end
+
+        return "" if relevant.empty?
+
+        lines = ["## Team Season Stats"]
+
+        relevant.each do |t|
+          games = t['Games'].to_i
+          games = 1 if games == 0
+
+          lines << "\n### #{t['Team']}"
+          lines << "- Points: #{t['Score']} total (#{(t['Score'].to_f / games).round(1)} per game)"
+          lines << "- Points Allowed: #{t['OpponentScore']} total (#{(t['OpponentScore'].to_f / games).round(1)} per game)"
+          lines << "- Total Yards/Game: #{(t['OffensiveYards'].to_f / games).round(1)}"
+          lines << "- Passing Yards/Game: #{(t['PassingYards'].to_f / games).round(1)}"
+          lines << "- Rushing Yards/Game: #{(t['RushingYards'].to_f / games).round(1)}"
+          lines << "- Turnover Differential: #{t['TurnoverDifferential']}" if t['TurnoverDifferential']
+          lines << "- Takeaways: #{t['Takeaways']}, Giveaways: #{t['Giveaways']}"
+        end
+
+        # If no specific team, show league leaders
+        if team_keys.empty? && data.length > 10
+          lines << "\n### League Rankings"
+
+          # Best offenses
+          lines << "\n**Top Scoring Offenses:**"
+          data.sort_by { |t| -(t['Score'] || 0) }.first(5).each_with_index do |t, i|
+            games = [t['Games'].to_i, 1].max
+            lines << "#{i + 1}. #{t['Team']}: #{(t['Score'].to_f / games).round(1)} PPG"
+          end
+
+          # Best defenses
+          lines << "\n**Top Scoring Defenses:**"
+          data.sort_by { |t| t['OpponentScore'] || 999 }.first(5).each_with_index do |t, i|
+            games = [t['Games'].to_i, 1].max
+            lines << "#{i + 1}. #{t['Team']}: #{(t['OpponentScore'].to_f / games).round(1)} PPG allowed"
+          end
+        end
+
+        lines.join("\n") + "\n"
+      end
+
+      def format_odds(data, entities)
+        return "" unless data.is_a?(Array) && data.any?
+
+        team_keys = entities[:teams].map { |t| t["Key"] }
+
+        relevant = if team_keys.any?
+          data.select { |g| team_keys.include?(g["HomeTeam"]) || team_keys.include?(g["AwayTeam"]) }
+        else
+          data
+        end
+
+        return "" if relevant.empty?
+
+        lines = ["## Betting Odds"]
+
+        relevant.first(10).each do |game|
+          home = game["HomeTeam"]
+          away = game["AwayTeam"]
+          date = game["Date"] || game["DateTime"]
+
+          lines << "\n### #{away} @ #{home}"
+          lines << "Date: #{date}" if date
+
+          # Get consensus odds (usually the first/main sportsbook)
+          odds = game["PregameOdds"] || []
+          consensus = odds.find { |o| o["Sportsbook"] == "Consensus" } || odds.first
+
+          if consensus
+            spread = consensus["HomePointSpread"]
+            over_under = consensus["OverUnder"]
+            home_ml = consensus["HomeMoneyLine"]
+            away_ml = consensus["AwayMoneyLine"]
+
+            if spread
+              favorite = spread < 0 ? home : away
+              spread_display = spread.abs
+              lines << "- Spread: #{favorite} -#{spread_display}"
+            end
+
+            lines << "- Over/Under: #{over_under}" if over_under
+            lines << "- Moneyline: #{home} #{home_ml}, #{away} #{away_ml}" if home_ml && away_ml
+          end
+        end
+
+        lines.join("\n") + "\n"
+      end
+
+      def format_depth_charts(data, entities)
+        return "" unless data.is_a?(Array) && data.any?
+
+        team_keys = entities[:teams].map { |t| t["Key"] }
+
+        relevant = if team_keys.any?
+          data.select { |d| team_keys.include?(d["Team"]) }
+        else
+          data
+        end
+
+        return "" if relevant.empty?
+
+        lines = ["## Depth Charts"]
+
+        # Group by team
+        grouped = relevant.group_by { |d| d["Team"] }
+
+        grouped.each do |team, depth_entries|
+          lines << "\n### #{team}"
+
+          # Key positions only
+          key_positions = ["QB", "RB", "WR1", "WR2", "TE", "LT", "LG", "C", "RG", "RT"]
+
+          key_positions.each do |pos|
+            starters = depth_entries.select { |d| d["PositionCategory"] == pos || d["Position"] == pos }
+              .sort_by { |d| d["DepthOrder"] || 99 }
+
+            if starters.any?
+              starter = starters.first
+              backup = starters[1]
+              depth_str = "#{starter['Name']} (#{starter['DepthOrder'] == 1 ? 'Starter' : "##{starter['DepthOrder']}"})"
+              depth_str += ", #{backup['Name']} (Backup)" if backup
+              lines << "- #{pos}: #{depth_str}"
+            end
+          end
+        end
+
+        lines.join("\n") + "\n"
+      end
+
+      def format_players_roster(data, entities)
+        return "" unless data.is_a?(Array) && data.any?
+
+        lines = ["## Team Roster"]
+
+        # Group by position
+        positions = data.group_by { |p| p["Position"] }
+
+        # Show key position groups
+        %w[QB RB WR TE].each do |pos|
+          players = positions[pos]
+          next unless players&.any?
+
+          lines << "\n### #{pos}s"
+          players.each do |p|
+            status = p["Status"] || "Active"
+            injury_status = p["InjuryStatus"]
+            status_display = injury_status ? "#{status} - #{injury_status}" : status
+            lines << "- #{p['Name']} ##{p['Number']} (#{status_display})"
+          end
+        end
+
+        lines.join("\n") + "\n"
       end
     end
   end
