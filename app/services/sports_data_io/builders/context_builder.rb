@@ -248,15 +248,29 @@ module SportsDataIO
           team_keys = entities[:teams].map { |t| t["Key"] }
           relevant = data.select { |s| team_keys.include?(s["Team"]) }
           relevant.each do |s|
-            lines << "- #{s['Team']}: #{s['Wins']}-#{s['Losses']}-#{s['Ties'] || 0}"
+            record = "#{s['Wins']}-#{s['Losses']}"
+            record += "-#{s['Ties']}" if s['Ties'].to_i > 0
+            div_rank = s['DivisionRank']
+            conf_rank = s['ConferenceRank']
+            division = "#{s['Conference']} #{s['Division']}"
+
+            # Include division rank and playoff implications
+            rank_info = "##{div_rank} in #{division}"
+            rank_info += " (DIVISION LEADER - PLAYOFF BERTH)" if div_rank == 1
+            rank_info += ", ##{conf_rank} in #{s['Conference']}"
+
+            lines << "- #{s['Name'] || s['Team']}: #{record} - #{rank_info}"
           end
         else
           # Show all teams grouped by division
           grouped = data.group_by { |s| "#{s['Conference']} #{s['Division']}" }
           grouped.each do |div, teams|
             lines << "\n### #{div}"
-            teams.sort_by { |t| -t['Wins'] }.first(4).each do |s|
-              lines << "- #{s['Team']}: #{s['Wins']}-#{s['Losses']}-#{s['Ties'] || 0}"
+            teams.sort_by { |t| t['DivisionRank'] || 99 }.first(4).each do |s|
+              record = "#{s['Wins']}-#{s['Losses']}"
+              record += "-#{s['Ties']}" if s['Ties'].to_i > 0
+              div_leader = s['DivisionRank'] == 1 ? " (Division Leader)" : ""
+              lines << "- #{s['Team']}: #{record}#{div_leader}"
             end
           end
         end
