@@ -209,6 +209,18 @@ module SportsDataIO
           format_depth_charts(data, entities)
         when :players_by_team
           format_players_roster(data, entities)
+        when :bye_weeks
+          format_bye_weeks(data, entities)
+        when :stadiums
+          format_stadiums(data, entities)
+        when :player_props
+          format_player_props(data, entities)
+        when :odds_line_movement
+          format_line_movement(data, entities)
+        when :dfs_slates
+          format_dfs_slates(data, entities)
+        when :player_game_projections, :player_season_projections
+          format_projections(data, entities)
         else
           ""
         end
@@ -692,6 +704,188 @@ module SportsDataIO
             injury_status = p["InjuryStatus"]
             status_display = injury_status ? "#{status} - #{injury_status}" : status
             lines << "- #{p['Name']} ##{p['Number']} (#{status_display})"
+          end
+        end
+
+        lines.join("\n") + "\n"
+      end
+
+      def format_bye_weeks(data, entities)
+        return "" unless data.is_a?(Array) && data.any?
+
+        team_keys = entities[:teams].map { |t| t["Key"] }
+
+        lines = ["## Bye Weeks"]
+
+        if team_keys.any?
+          relevant = data.select { |b| team_keys.include?(b["Team"]) }
+          relevant.each do |bye|
+            lines << "- #{bye['Team']}: Week #{bye['Week']} bye"
+          end
+        else
+          # Group by week
+          grouped = data.group_by { |b| b["Week"] }
+          grouped.sort_by { |w, _| w }.each do |week, teams|
+            team_list = teams.map { |t| t["Team"] }.join(", ")
+            lines << "- Week #{week}: #{team_list}"
+          end
+        end
+
+        lines.join("\n") + "\n"
+      end
+
+      def format_stadiums(data, entities)
+        return "" unless data.is_a?(Array) && data.any?
+
+        team_keys = entities[:teams].map { |t| t["Key"] }
+
+        lines = ["## Stadiums"]
+
+        relevant = if team_keys.any?
+          # Find stadiums for the specified teams
+          data.select { |s| team_keys.any? { |tk| s["Name"]&.include?(tk) || s["City"]&.include?(tk) } }
+        else
+          data.first(10)
+        end
+
+        relevant.each do |stadium|
+          capacity = stadium["Capacity"] ? " (#{stadium['Capacity'].to_i.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1,').reverse} capacity)" : ""
+          surface = stadium["PlayingSurface"] ? ", #{stadium['PlayingSurface']}" : ""
+          type = stadium["Type"] || "Stadium"
+          lines << "- #{stadium['Name']}: #{stadium['City']}, #{stadium['State']}#{capacity}#{surface} - #{type}"
+        end
+
+        lines.join("\n") + "\n"
+      end
+
+      def format_player_props(data, entities)
+        return "" unless data.is_a?(Array) && data.any?
+
+        lines = ["## Player Props"]
+
+        # Group by player
+        grouped = data.group_by { |p| p["PlayerName"] || p["Name"] }
+
+        grouped.first(10).each do |player_name, props|
+          next unless player_name
+
+          lines << "\n### #{player_name}"
+          props.first(5).each do |prop|
+            bet_type = prop["BetType"] || prop["MarketType"] || "Prop"
+            line = prop["Line"] || prop["OverUnder"]
+            over_payout = prop["OverPayout"] || prop["OverOdds"]
+            under_payout = prop["UnderPayout"] || prop["UnderOdds"]
+
+            if line
+              lines << "- #{bet_type}: #{line} (Over: #{over_payout}, Under: #{under_payout})"
+            end
+          end
+        end
+
+        lines.join("\n") + "\n"
+      end
+
+      def format_line_movement(data, entities)
+        return "" unless data.is_a?(Array) || data.is_a?(Hash)
+
+        lines = ["## Line Movement"]
+
+        # Handle both array and hash responses
+        movements = data.is_a?(Array) ? data : [data]
+
+        movements.first(20).each do |move|
+          timestamp = move["DateTime"] || move["Created"]
+          spread = move["HomePointSpread"] || move["PointSpread"]
+          over_under = move["OverUnder"]
+          sportsbook = move["Sportsbook"] || "Consensus"
+
+          if timestamp && (spread || over_under)
+            time_str = begin
+              Time.parse(timestamp).strftime("%m/%d %I:%M%p")
+            rescue
+              timestamp
+            end
+            lines << "- #{time_str} (#{sportsbook}): Spread #{spread}, O/U #{over_under}"
+          end
+        end
+
+        if lines.length == 1
+          lines << "- No line movement data available"
+        end
+
+        lines.join("\n") + "\n"
+      end
+
+      def format_dfs_slates(data, entities)
+        return "" unless data.is_a?(Array) && data.any?
+
+        lines = ["## DFS Slates"]
+
+        data.first(5).each do |slate|
+          operator = slate["Operator"] || "Unknown"
+          name = slate["Name"] || slate["SlateName"] || "Main"
+          game_count = slate["NumberOfGames"] || slate["Games"]&.length || 0
+
+          lines << "\n### #{operator} - #{name}"
+          lines << "- Games: #{game_count}"
+
+          # Show salary info if available
+          players = slate["DfsSlateGames"] || slate["Players"] || []
+          if players.any?
+            lines << "- Top Salaries:"
+            players.flatten.first(5).each do |player|
+              if player["OperatorPlayerName"] && player["OperatorSalary"]
+                lines << "  - #{player['OperatorPlayerName']}: $#{player['OperatorSalary']}"
+              end
+            end
+          end
+        end
+
+        lines.join("\n") + "\n"
+      end
+
+      def format_projections(data, entities)
+        return "" unless data.is_a?(Array) && data.any?
+
+        team_keys = entities[:teams].map { |t| t["Key"] }
+
+        relevant = if team_keys.any?
+          data.select { |p| team_keys.include?(p["Team"]) }
+        else
+          data.first(50)
+        end
+
+        return "" if relevant.empty?
+
+        lines = ["## Player Projections"]
+
+        # QBs
+        qbs = relevant.select { |p| p["Position"] == "QB" && p["PassingYards"].to_f > 0 }
+        if qbs.any?
+          lines << "\n### Quarterbacks"
+          qbs.sort_by { |p| -(p["FantasyPoints"] || p["PassingYards"] || 0) }.first(5).each do |p|
+            fantasy = p["FantasyPoints"] ? " (#{p['FantasyPoints'].round(1)} pts)" : ""
+            lines << "- #{p['Name']} (#{p['Team']}): #{p['PassingYards']&.round} pass yds, #{p['PassingTouchdowns']&.round} TD proj#{fantasy}"
+          end
+        end
+
+        # RBs
+        rbs = relevant.select { |p| p["Position"] == "RB" && p["RushingYards"].to_f > 0 }
+        if rbs.any?
+          lines << "\n### Running Backs"
+          rbs.sort_by { |p| -(p["FantasyPoints"] || p["RushingYards"] || 0) }.first(5).each do |p|
+            fantasy = p["FantasyPoints"] ? " (#{p['FantasyPoints'].round(1)} pts)" : ""
+            lines << "- #{p['Name']} (#{p['Team']}): #{p['RushingYards']&.round} rush yds, #{p['RushingTouchdowns']&.round} TD proj#{fantasy}"
+          end
+        end
+
+        # WRs/TEs
+        receivers = relevant.select { |p| ["WR", "TE"].include?(p["Position"]) && p["ReceivingYards"].to_f > 0 }
+        if receivers.any?
+          lines << "\n### Receivers"
+          receivers.sort_by { |p| -(p["FantasyPoints"] || p["ReceivingYards"] || 0) }.first(5).each do |p|
+            fantasy = p["FantasyPoints"] ? " (#{p['FantasyPoints'].round(1)} pts)" : ""
+            lines << "- #{p['Name']} (#{p['Team']}): #{p['Receptions']&.round} rec, #{p['ReceivingYards']&.round} yds proj#{fantasy}"
           end
         end
 

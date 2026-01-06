@@ -58,7 +58,19 @@ module SportsDataIO
     # Betting/Odds
     ODDS_ENDPOINTS = {
       pregame_odds_week:   { path: "/json/GameOddsByWeek/{season}/{week}", ttl: 30.seconds, base: :odds },
-      live_odds_week:      { path: "/json/LiveGameOddsByWeek/{season}/{week}", ttl: 5.seconds, base: :odds }
+      live_odds_week:      { path: "/json/LiveGameOddsByWeek/{season}/{week}", ttl: 5.seconds, base: :odds },
+      odds_line_movement:  { path: "/json/GameOddsLineMovement/{scoreid}", ttl: 1.minute, base: :odds },
+      player_props:        { path: "/json/BettingPlayerPropsByGameID/{season}/{week}/{gameid}", ttl: 5.minutes, base: :odds },
+      betting_events:      { path: "/json/BettingEvents/{season}", ttl: 5.minutes, base: :odds },
+      betting_markets:     { path: "/json/BettingMarkets/{marketid}", ttl: 5.minutes, base: :odds }
+    }.freeze
+
+    # Fantasy/DFS
+    FANTASY_ENDPOINTS = {
+      dfs_slates:          { path: "/json/DfsSlatesByWeek/{season}/{week}", ttl: 15.minutes, base: :projections },
+      player_game_projections: { path: "/json/PlayerGameProjectionStatsByWeek/{season}/{week}", ttl: 15.minutes, base: :projections },
+      player_season_projections: { path: "/json/PlayerSeasonProjectionStats/{season}", ttl: 1.hour, base: :projections },
+      fantasy_players:     { path: "/json/FantasyPlayers", ttl: 1.hour, base: :projections }
     }.freeze
 
     # News
@@ -76,6 +88,7 @@ module SportsDataIO
       .merge(STATS_ENDPOINTS)
       .merge(BOX_SCORE_ENDPOINTS)
       .merge(ODDS_ENDPOINTS)
+      .merge(FANTASY_ENDPOINTS)
       .merge(NEWS_ENDPOINTS)
       .freeze
 

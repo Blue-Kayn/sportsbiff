@@ -102,6 +102,72 @@ module SportsDataIO
         ],
         endpoints: [:depth_charts_active, :players_by_team],
         context: [:teams]
+      },
+
+      # Bye Week Questions
+      bye_week: {
+        patterns: [
+          /bye\s*week/i, /bye/i, /off\s*week/i, /not\s*playing/i,
+          /week\s*off/i, /no\s*game/i
+        ],
+        endpoints: [:bye_weeks, :schedules],
+        context: [:teams, :season]
+      },
+
+      # Stadium/Venue Questions
+      venue: {
+        patterns: [
+          /stadium/i, /where.*(play|game)/i, /venue/i, /arena/i,
+          /home\s*field/i, /field/i, /dome/i
+        ],
+        endpoints: [:stadiums],
+        context: [:teams]
+      },
+
+      # Player Props Betting
+      player_props: {
+        patterns: [
+          /player\s*prop/i, /prop\s*bet/i, /over.?under.*(yards|touchdowns|receptions|completions)/i,
+          /passing\s*(over|under)/i, /rushing\s*(over|under)/i, /receiving\s*(over|under)/i,
+          /anytime\s*touchdown/i, /first\s*touchdown\s*scorer/i,
+          /how\s*many\s*(yards|touchdowns|receptions).*line/i
+        ],
+        endpoints: [:player_props, :pregame_odds_week],
+        context: [:teams, :season, :week]
+      },
+
+      # Line Movement
+      line_movement: {
+        patterns: [
+          /line\s*(move|movement|moved|moving)/i, /spread\s*(move|change)/i,
+          /odds\s*(move|change)/i, /open(ed|ing)\s*(line|spread)/i,
+          /how.*(line|spread).*(move|change)/i
+        ],
+        endpoints: [:odds_line_movement, :pregame_odds_week],
+        context: [:teams, :season, :week]
+      },
+
+      # DFS/Fantasy Questions
+      fantasy: {
+        patterns: [
+          /dfs/i, /daily\s*fantasy/i, /draftkings/i, /fanduel/i, /yahoo\s*fantasy/i,
+          /fantasy\s*(value|pick|play|start)/i, /best\s*value/i,
+          /salary/i, /ownership/i, /slate/i,
+          /who\s*should\s*i\s*(start|play|pick)/i, /start.*(or|vs)/i
+        ],
+        endpoints: [:dfs_slates, :player_game_projections, :injuries_all],
+        context: [:teams, :season, :week]
+      },
+
+      # Projections
+      projections: {
+        patterns: [
+          /project(ed|ion)/i, /expect(ed)?/i, /forecast/i,
+          /how\s*many.*(expect|project)/i, /predicted/i,
+          /fantasy\s*points/i
+        ],
+        endpoints: [:player_game_projections, :player_season_projections],
+        context: [:teams, :season, :week]
       }
     }.freeze
 
