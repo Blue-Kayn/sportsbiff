@@ -221,6 +221,10 @@ module SportsDataIO
           format_dfs_slates(data, entities)
         when :player_game_projections, :player_season_projections
           format_projections(data, entities)
+        when :box_scores_delta
+          format_box_scores_delta(data, entities)
+        when :are_games_in_progress
+          format_games_in_progress(data, entities)
         else
           ""
         end
@@ -890,6 +894,91 @@ module SportsDataIO
         end
 
         lines.join("\n") + "\n"
+      end
+
+      def format_box_scores_delta(data, entities)
+        return "" unless data.is_a?(Array) && data.any?
+
+        team_keys = entities[:teams].map { |t| t["Key"] }
+
+        relevant = if team_keys.any?
+          data.select { |g| team_keys.include?(g["HomeTeam"]) || team_keys.include?(g["AwayTeam"]) }
+        else
+          data
+        end
+
+        return "" if relevant.empty?
+
+        lines = ["## Live Game Updates (Last Few Minutes)"]
+
+        relevant.each do |game|
+          home = game["HomeTeam"]
+          away = game["AwayTeam"]
+          home_score = game["HomeScore"] || 0
+          away_score = game["AwayScore"] || 0
+          quarter = game["Quarter"] || game["Period"]
+          time_remaining = game["TimeRemaining"] || game["GameClock"]
+          status = game["Status"]
+
+          lines << "\n### #{away} #{away_score} @ #{home} #{home_score}"
+          lines << "Status: #{status}" if status
+          lines << "Q#{quarter} - #{time_remaining}" if quarter && time_remaining
+
+          # Recent scoring plays
+          scoring_plays = game["ScoringPlays"] || []
+          if scoring_plays.any?
+            lines << "\n**Recent Scoring:**"
+            scoring_plays.last(5).each do |play|
+              lines << "- #{play['Team']}: #{play['Description']} (#{play['AwayScore']}-#{play['HomeScore']})"
+            end
+          end
+
+          # Player stat updates
+          player_stats = game["PlayerGames"] || []
+          if player_stats.any?
+            # Show top performers with recent updates
+            qbs = player_stats.select { |p| p["Position"] == "QB" && p["PassingYards"].to_i > 0 }
+            if qbs.any?
+              lines << "\n**QB Updates:**"
+              qbs.first(2).each do |p|
+                lines << "- #{p['Name']}: #{p['PassingCompletions']}/#{p['PassingAttempts']}, #{p['PassingYards']} yds, #{p['PassingTouchdowns']} TD"
+              end
+            end
+
+            # Top rushers
+            rushers = player_stats.select { |p| p["RushingYards"].to_i > 20 }
+              .sort_by { |p| -(p["RushingYards"] || 0) }.first(3)
+            if rushers.any?
+              lines << "\n**Rushing:**"
+              rushers.each do |p|
+                lines << "- #{p['Name']}: #{p['RushingAttempts']} carries, #{p['RushingYards']} yds"
+              end
+            end
+
+            # Top receivers
+            receivers = player_stats.select { |p| p["ReceivingYards"].to_i > 20 }
+              .sort_by { |p| -(p["ReceivingYards"] || 0) }.first(3)
+            if receivers.any?
+              lines << "\n**Receiving:**"
+              receivers.each do |p|
+                lines << "- #{p['Name']}: #{p['Receptions']} rec, #{p['ReceivingYards']} yds"
+              end
+            end
+          end
+        end
+
+        lines.join("\n") + "\n"
+      end
+
+      def format_games_in_progress(data, entities)
+        # This endpoint returns a simple boolean
+        if data == true
+          "## Games Status\n**Games are currently in progress!**\n"
+        elsif data == false
+          "## Games Status\nNo games currently in progress.\n"
+        else
+          ""
+        end
       end
     end
   end

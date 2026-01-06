@@ -198,9 +198,10 @@ module SportsDataIO
         patterns: [
           /live\s*(score|update|stat)/i, /real\s*time/i,
           /what('s| is)\s*happening\s*(right\s*)?now/i,
-          /current\s*(score|stat)/i, /in\s*progress/i
+          /current\s*(score|stat)/i, /in\s*progress/i,
+          /play\s*by\s*play/i, /latest\s*play/i, /what\s*just\s*happened/i
         ],
-        endpoints: [:are_games_in_progress, :scores_by_week, :live_odds_week],
+        endpoints: [:are_games_in_progress, :scores_by_week, :box_scores_delta, :live_odds_week],
         context: [:teams, :season, :week]
       },
 
