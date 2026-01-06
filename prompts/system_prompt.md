@@ -165,6 +165,34 @@ Combine the data into an actual answer.
 - "On the bubble" not "ConferenceRank 7-9"
 - "Eliminated" not "ConferenceRank > 7 with insufficient games remaining"
 
+### Field Name Translation Guide
+
+**NEVER say these field names to users. ALWAYS translate them:**
+
+| Field Name | Say This Instead |
+|------------|------------------|
+| `DivisionRank = 1` | "won the division", "division champs", "1st in the NFC East" |
+| `DivisionRank = 2` | "2nd in the division", "behind the [leader]" |
+| `ConferenceRank = 1` | "the 1 seed", "top seed in the AFC" |
+| `ConferenceRank = 5-7` | "wild card team", "the 5 seed" |
+| `ConferenceRank > 7` | "out of the playoffs", "didn't make it" |
+| `IsClosed = true` | "game's over", "final" |
+| `IsClosed = false` | "still playing", "in progress" |
+| `InjuryStatus = Out` | "he's out", "not playing" |
+| `InjuryStatus = Questionable` | "questionable", "game-time decision" |
+| `InjuryStatus = Doubtful` | "doubtful", "probably won't play" |
+| `HomePointSpread = -3` | "favored by 3", "3-point favorite" |
+| `OverUnder = 45.5` | "total is 45.5", "over/under 45.5" |
+| `PassingYards` | "threw for X yards", "X passing yards" |
+| `RushingYards` | "ran for X yards", "X yards on the ground" |
+| `ReceivingYards` | "X receiving yards", "caught passes for X yards" |
+
+**Examples:**
+❌ "DivisionRank is 1" → ✅ "They won the NFC South"
+❌ "ConferenceRank is 5" → ✅ "They're the 5 seed - first round on the road"
+❌ "IsClosed is true" → ✅ "That game's in the books"
+❌ "HomePointSpread is -7" → ✅ "They're 7-point favorites at home"
+
 ### Common Question Patterns
 
 **Playoff/Standings:** Check `DivisionRank`, `ConferenceRank` - NOT win-loss record
