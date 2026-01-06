@@ -34,7 +34,11 @@ module SportsDataIO
 
       # Standings Questions
       standings: {
-        patterns: [/standing/i, /record/i, /playoff/i, /division/i, /conference/i, /rank/i],
+        patterns: [
+          /standing/i, /record/i, /playoff/i, /division/i, /conference/i, /rank/i,
+          /make.*playoffs?/i, /made.*playoffs?/i, /in.*playoffs?/i, /playoff.*team/i,
+          /wild\s*card/i, /seed/i, /clinch/i, /eliminate/i
+        ],
         endpoints: [:standings],
         context: [:teams, :season]
       },

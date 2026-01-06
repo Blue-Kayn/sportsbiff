@@ -284,12 +284,22 @@ module SportsDataIO
             conf_rank = s['ConferenceRank']
             division = "#{s['Conference']} #{s['Division']}"
 
-            # Include division rank and playoff implications
-            rank_info = "##{div_rank} in #{division}"
-            rank_info += " (DIVISION LEADER - PLAYOFF BERTH)" if div_rank == 1
-            rank_info += ", ##{conf_rank} in #{s['Conference']}"
+            # Determine playoff status explicitly
+            playoff_status = if div_rank == 1
+              "MADE PLAYOFFS (Division Winner)"
+            elsif conf_rank && conf_rank <= 7
+              "MADE PLAYOFFS (Wild Card ##{conf_rank - 4})"
+            else
+              "Did not make playoffs"
+            end
 
-            lines << "- #{s['Name'] || s['Team']}: #{record} - #{rank_info}"
+            # Include division rank and playoff implications
+            rank_info = "##{div_rank} in #{division}, ##{conf_rank} in #{s['Conference']}"
+
+            lines << "- #{s['Name'] || s['Team']}: #{record}"
+            lines << "  Division Rank: #{div_rank} (#{division})"
+            lines << "  Conference Rank: #{conf_rank} (#{s['Conference']})"
+            lines << "  Playoff Status: #{playoff_status}"
           end
         else
           # Show all teams grouped by division
@@ -299,8 +309,15 @@ module SportsDataIO
             teams.sort_by { |t| t['DivisionRank'] || 99 }.first(4).each do |s|
               record = "#{s['Wins']}-#{s['Losses']}"
               record += "-#{s['Ties']}" if s['Ties'].to_i > 0
-              div_leader = s['DivisionRank'] == 1 ? " (Division Leader)" : ""
-              lines << "- #{s['Team']}: #{record}#{div_leader}"
+              conf_rank = s['ConferenceRank']
+              playoff_indicator = if s['DivisionRank'] == 1
+                " ★ PLAYOFFS (Div Winner)"
+              elsif conf_rank && conf_rank <= 7
+                " ★ PLAYOFFS (Wild Card)"
+              else
+                ""
+              end
+              lines << "- #{s['Team']}: #{record}#{playoff_indicator}"
             end
           end
         end
