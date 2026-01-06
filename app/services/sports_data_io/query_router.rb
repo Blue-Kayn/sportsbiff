@@ -168,6 +168,158 @@ module SportsDataIO
         ],
         endpoints: [:player_game_projections, :player_season_projections],
         context: [:teams, :season, :week]
+      },
+
+      # All Players Search (league-wide)
+      player_search: {
+        patterns: [
+          /all\s*(nfl\s*)?(players|quarterbacks|qbs|running backs|receivers)/i,
+          /league\s*leaders/i, /top\s*(players|qbs|rbs|wrs)/i,
+          /best\s*(players|qbs|rbs|wrs)\s*in\s*(the\s*)?(nfl|league)/i,
+          /who\s*leads\s*the\s*(nfl|league)/i,
+          /mvp\s*(candidate|race|contender)/i
+        ],
+        endpoints: [:player_season_stats, :standings],
+        context: [:season]
+      },
+
+      # Betting Events/Markets
+      betting_events: {
+        patterns: [
+          /betting\s*event/i, /betting\s*market/i, /all\s*bets/i,
+          /available\s*bets/i, /what\s*can\s*i\s*bet\s*on/i
+        ],
+        endpoints: [:betting_events, :pregame_odds_week],
+        context: [:season, :week]
+      },
+
+      # Live Game Updates (real-time)
+      live_updates: {
+        patterns: [
+          /live\s*(score|update|stat)/i, /real\s*time/i,
+          /what('s| is)\s*happening\s*(right\s*)?now/i,
+          /current\s*(score|stat)/i, /in\s*progress/i
+        ],
+        endpoints: [:are_games_in_progress, :scores_by_week, :live_odds_week],
+        context: [:teams, :season, :week]
+      },
+
+      # Historical/Season Trends
+      season_trends: {
+        patterns: [
+          /this\s*season/i, /season\s*(so\s*far|total|stats)/i,
+          /all\s*season/i, /year\s*to\s*date/i,
+          /season\s*long/i, /full\s*season/i
+        ],
+        endpoints: [:player_season_stats, :team_season_stats, :standings],
+        context: [:teams, :season]
+      },
+
+      # Specific Week Stats
+      weekly_stats: {
+        patterns: [
+          /week\s*\d+/i, /last\s*week/i, /this\s*week/i,
+          /weekly\s*(stats|performance|results)/i
+        ],
+        endpoints: [:player_game_stats_week, :team_game_stats, :scores_by_week],
+        context: [:teams, :season, :week]
+      },
+
+      # Head-to-Head / Matchup Analysis
+      matchup: {
+        patterns: [
+          /vs\.?/i, /versus/i, /against/i, /matchup/i,
+          /head\s*to\s*head/i, /face\s*off/i,
+          /playing\s*(each\s*other|against)/i
+        ],
+        endpoints: [:schedules, :team_season_stats, :standings, :pregame_odds_week],
+        context: [:teams, :season, :week]
+      },
+
+      # Defensive Stats
+      defensive: {
+        patterns: [
+          /defens(e|ive)/i, /sacks/i, /intercept/i,
+          /tackles/i, /fumble\s*recover/i, /defensive\s*line/i,
+          /pass\s*rush/i, /secondary/i, /cornerback/i, /linebacker/i,
+          /points\s*allowed/i, /yards\s*allowed/i
+        ],
+        endpoints: [:team_season_stats, :team_game_stats, :player_season_stats],
+        context: [:teams, :season, :week]
+      },
+
+      # Special Teams
+      special_teams: {
+        patterns: [
+          /kick(er|ing)/i, /punt(er|ing)/i, /field\s*goal/i,
+          /extra\s*point/i, /return(er|s)?/i, /special\s*teams/i,
+          /fg\s*%/i, /kick\s*return/i, /punt\s*return/i
+        ],
+        endpoints: [:player_season_stats, :player_game_stats_week],
+        context: [:teams, :season, :week]
+      },
+
+      # Coaching/Staff
+      team_info: {
+        patterns: [
+          /coach/i, /head\s*coach/i, /offensive\s*coordinator/i,
+          /defensive\s*coordinator/i, /owner/i, /gm/i, /general\s*manager/i
+        ],
+        endpoints: [:teams_active],
+        context: [:teams]
+      },
+
+      # Timeframes/Season Info
+      timeframe: {
+        patterns: [
+          /what\s*week\s*(is\s*it|are\s*we)/i, /current\s*week/i,
+          /what\s*season/i, /when\s*does.*start/i, /when\s*does.*end/i,
+          /how\s*many\s*weeks\s*left/i, /playoff\s*schedule/i
+        ],
+        endpoints: [:current_week, :current_season, :timeframes],
+        context: [:season]
+      },
+
+      # Trade/Transaction Questions
+      transactions: {
+        patterns: [
+          /trade/i, /sign(ed|ing)/i, /release/i, /cut\b/i,
+          /waiver/i, /free\s*agent/i, /transaction/i,
+          /who\s*did\s*they\s*(get|trade|sign)/i
+        ],
+        endpoints: [:news, :news_by_team],
+        context: [:teams]
+      },
+
+      # Draft/Rookie Questions
+      rookies: {
+        patterns: [
+          /rookie/i, /draft\s*pick/i, /first\s*year/i,
+          /drafted/i, /undrafted/i, /rookie\s*of\s*the\s*year/i
+        ],
+        endpoints: [:player_season_stats, :news],
+        context: [:teams, :season]
+      },
+
+      # Records/Milestones
+      records: {
+        patterns: [
+          /record/i, /milestone/i, /career\s*high/i, /all\s*time/i,
+          /most\s*ever/i, /first\s*time/i, /historic/i
+        ],
+        endpoints: [:player_season_stats, :team_season_stats, :news],
+        context: [:teams, :season]
+      },
+
+      # Contract/Salary (from news)
+      contracts: {
+        patterns: [
+          /contract/i, /salary/i, /cap\s*(space|hit)/i,
+          /extension/i, /deal/i, /money/i, /paid/i,
+          /how\s*much\s*(does|is).*mak(e|ing)/i
+        ],
+        endpoints: [:news, :news_by_team],
+        context: [:teams]
       }
     }.freeze
 
