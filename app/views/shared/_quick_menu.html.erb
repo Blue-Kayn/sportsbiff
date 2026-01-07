@@ -1,0 +1,22 @@
+<div data-controller="quick-menu"
+     data-quick-menu-favorite-teams-value="<%= current_user&.favorite_team_names&.to_json %>"
+     class="quick-menu-container">
+
+  <!-- Questions Button - Same style as Send -->
+  <button type="button" class="quick-menu-toggle" data-action="click->quick-menu#toggle" aria-label="Quick Questions">
+    Questions
+  </button>
+
+  <!-- Dropdown Menu -->
+  <div class="quick-menu hidden" data-quick-menu-target="menu">
+    <div class="quick-menu-content" data-quick-menu-target="content">
+      <!-- Content rendered dynamically by Stimulus -->
+    </div>
+  </div>
+</div>
+
+<!-- Embed menu data for JavaScript -->
+<script>
+  window.SPORTSBIFF_MENU_DATA = <%= raw SportsbiffMenu.all_sports_data.to_json %>;
+  window.SPORTSBIFF_ROSTERS = <%= raw RosterCacheService.all_rosters.to_json %>;
+</script>

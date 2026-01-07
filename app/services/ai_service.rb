@@ -117,11 +117,18 @@ class AiService
     # Remove schedule dumps (## NFL Schedule followed by game listings)
     content = content.gsub(/##\s*NFL Schedule.*?(?=\n\n[A-Z]|\n\n\z|\z)/m, "")
 
-    # Remove markdown headers that slipped through
+    # Remove markdown headers that slipped through (but keep bullet points for structure)
     content = content.gsub(/^##\s+.+$/m, "")
 
-    # Remove bullet point lists
-    content = content.gsub(/^-\s+.+$/m, "")
+    # Remove off-topic content: weather mentions
+    content = content.gsub(/As for the weather.*?(?=\n\n|\z)/m, "")
+    content = content.gsub(/(?:The )?[Ww]eather in.*?(?:\.|$)/m, "")
+
+    # Remove sentences about rebuilding/offseason that are tangential
+    content = content.gsub(/Looking ahead.*?(?:season|draft)\.?/m, "")
+
+    # Remove trailing rhetorical questions (By the way, did you hear...)
+    content = content.gsub(/\n\n(?:By the way|Did you (?:hear|know)|Speaking of).*?\?$/m, "")
 
     # Clean up multiple newlines
     content = content.gsub(/\n{3,}/, "\n\n")
@@ -135,22 +142,18 @@ class AiService
     content = content.strip
 
     # Truncate to reasonable length (the model sometimes loops)
-    # Find a natural stopping point around 400 chars (about 60-80 words)
-    # Look for a question mark (follow-up question) or period near the end
-    if content.length > 600
-      # Try to find a follow-up question (ends with ?)
-      question_match = content[0..800].rindex("?")
-      if question_match && question_match > 200
-        content = content[0..question_match]
+    # 1200 chars allows for structured responses with bullet points
+    # Find a natural stopping point at a period or newline
+    if content.length > 1200
+      # Find the last complete sentence within 1200 chars
+      period_match = content[0..1200].rindex(".")
+      newline_match = content[0..1200].rindex("\n")
+      cut_point = [period_match, newline_match].compact.max
+      if cut_point && cut_point > 300
+        content = content[0..cut_point]
       else
-        # Find the last complete sentence within 500 chars
-        period_match = content[0..600].rindex(".")
-        if period_match && period_match > 200
-          content = content[0..period_match]
-        else
-          # Just truncate at word boundary
-          content = content[0..500].sub(/\s+\S*$/, "") + "..."
-        end
+        # Just truncate at word boundary
+        content = content[0..1000].sub(/\s+\S*$/, "") + "..."
       end
     end
 
@@ -197,6 +200,9 @@ class AiService
       4. When discussing odds/betting, frame as "market intelligence" not advice
          - Say "markets favor..." or "the line suggests..." NOT "you should bet..."
          - Never guarantee outcomes or recommend specific bets
+      5. When asked about MULTIPLE teams, give roughly EQUAL coverage to each team
+         - Don't write a paragraph about one and a sentence about another
+         - Each team deserves similar detail (2-3 sentences each)
 
       ## Current Real-Time Data
       {CONTEXT_DATA}

@@ -24,6 +24,15 @@ Rails.application.routes.draw do
     patch "profile/teams", to: "profile#update_teams", as: :profile_update_teams
   end
 
+  # API routes for Quick Menu
+  namespace :api do
+    get "players/search", to: "players#search"
+    get "players/by_team", to: "players#by_team"
+    get "user/favorite_team", to: "users#favorite_team"
+    post "user/favorite_team", to: "users#set_favorite_team"
+    get "games/today", to: "games#today"
+  end
+
   # Health check
   get "up" => "rails/health#show", as: :rails_health_check
 

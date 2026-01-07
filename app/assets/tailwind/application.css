@@ -727,3 +727,256 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(59, 130, 246, 0.3);
 }
+
+/* ===== QUICK MENU ===== */
+.quick-menu-container {
+  position: relative;
+  display: inline-block;
+}
+
+/* Questions Button */
+.quick-menu-toggle {
+  display: inline-block;
+  background-color: #2563eb !important;
+  color: white !important;
+  padding: 19px 38px;
+  border-radius: 10px;
+  font-weight: 500;
+  font-size: 22px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  white-space: nowrap;
+  text-align: center;
+  position: relative;
+  top: -20px;
+}
+
+.quick-menu-toggle:hover {
+  background-color: #1d4ed8 !important;
+}
+
+/* Dropdown Menu - Opens above the button */
+.quick-menu {
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  margin-bottom: 8px;
+  width: 340px;
+  max-height: 450px;
+  background: #2563eb;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  z-index: 100;
+}
+
+.quick-menu.hidden {
+  display: none;
+}
+
+.quick-menu-content {
+  display: flex;
+  flex-direction: column;
+  max-height: 450px;
+  overflow-y: auto;
+}
+
+.quick-menu-header {
+  padding: 14px 20px;
+  font-weight: 600;
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.7);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.quick-menu-subheader {
+  padding: 10px 20px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+  background: rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.quick-menu-back {
+  padding: 14px 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: 16px;
+  color: white;
+  font-weight: 500;
+  transition: background 0.15s ease;
+  width: 100%;
+}
+
+.quick-menu-back:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.quick-menu-items {
+  display: flex;
+  flex-direction: column;
+}
+
+.quick-menu-items-scroll {
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.quick-menu-item {
+  padding: 14px 20px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  font-size: 17px;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: background 0.15s ease;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  width: 100%;
+}
+
+.quick-menu-item:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.quick-menu-item:last-child {
+  border-bottom: none;
+}
+
+.quick-menu-item-question {
+  font-size: 13px;
+  padding: 11px 16px;
+}
+
+.quick-menu-item-disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.quick-menu-item-disabled:hover {
+  background: transparent;
+}
+
+.quick-menu-icon {
+  font-size: 18px;
+  width: 24px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.quick-menu-label {
+  flex: 1;
+}
+
+.quick-menu-badge {
+  font-size: 9px;
+  padding: 3px 6px;
+  background: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.8);
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
+.quick-menu-item-meta {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-left: auto;
+}
+
+.quick-menu-search {
+  margin: 12px;
+  padding: 10px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  transition: all 0.15s ease;
+  width: calc(100% - 24px);
+}
+
+.quick-menu-search:focus {
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.quick-menu-search::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.quick-menu-player-input-container {
+  display: flex;
+  gap: 8px;
+  padding: 12px;
+  padding-top: 0;
+}
+
+.quick-menu-player-input-container .quick-menu-search {
+  margin: 0;
+  flex: 1;
+  width: auto;
+}
+
+.quick-menu-submit-btn {
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  white-space: nowrap;
+}
+
+.quick-menu-submit-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.quick-menu-empty {
+  padding: 24px 16px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 13px;
+}
+
+.quick-menu-hint {
+  padding: 16px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+}
+
+/* Scrollbar for menu */
+.quick-menu-content::-webkit-scrollbar,
+.quick-menu-items-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.quick-menu-content::-webkit-scrollbar-track,
+.quick-menu-items-scroll::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.quick-menu-content::-webkit-scrollbar-thumb,
+.quick-menu-items-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.quick-menu-content::-webkit-scrollbar-thumb:hover,
+.quick-menu-items-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
