@@ -5,8 +5,11 @@
       autocomplete: "off",
       autofocus: true,
       data: { chat_input: true } %>
-  <%= f.submit "Send",
-      class: "bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed" %>
+  <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-lg transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center" style="min-width: 48px; min-height: 48px;">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </button>
 <% end %>
 
 <script>

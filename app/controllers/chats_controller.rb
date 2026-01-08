@@ -67,7 +67,7 @@ class ChatsController < ApplicationController
 
     # Use new dashboard service for NFL teams
     if @team.sport == "NFL"
-      dashboard_service = TeamDashboardService.new(@team)
+      dashboard_service = TeamDashboardWebService.new(@team)
       @dashboard = dashboard_service.build_dashboard
     else
       # Fall back to old ESPN-based news for non-NFL teams
