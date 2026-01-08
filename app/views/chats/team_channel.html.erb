@@ -42,27 +42,38 @@
           <div class="dashboard-column">
 
             <!-- Next Game Card -->
-            <% if @dashboard[:next_game].present? %>
-              <div class="next-game-card animate-fade-in-up">
-                <div class="card-header">
-                  <div class="flex items-center">
-                    <svg class="card-header-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                    </svg>
-                    Next Game
-                  </div>
+            <div class="next-game-card animate-fade-in-up">
+              <div class="card-header">
+                <div class="flex items-center">
+                  <svg class="card-header-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                  </svg>
+                  Next Game
                 </div>
+              </div>
+              <% if @dashboard[:next_game].present? %>
+                <%
+                  # Look up opponent team from database to get logo
+                  opponent_abbrev = @dashboard[:next_game][:opponent]&.downcase
+                  opponent_team = Team.find_by(api_id: opponent_abbrev, sport: "NFL") if opponent_abbrev
+                  opponent_logo = opponent_team&.logo_url || @dashboard[:next_game][:opponent_logo]
+                  opponent_name = @dashboard[:next_game][:opponent_name]
+                  venue = @dashboard[:next_game][:venue]
+                %>
                 <div class="next-game-opponent" style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
-                  <% if @dashboard[:next_game][:opponent_logo].present? %>
-                    <img src="<%= @dashboard[:next_game][:opponent_logo] %>" alt="<%= @dashboard[:next_game][:opponent_name] %>" style="width: 64px; height: 64px; object-fit: contain;">
+                  <% if opponent_logo.present? %>
+                    <img src="<%= opponent_logo %>" alt="<%= opponent_name %>" style="width: 64px; height: 64px; object-fit: contain;">
                   <% end %>
                   <div>
-                    <% if @dashboard[:next_game][:is_home] %><% else %>@ <% end %><%= @dashboard[:next_game][:opponent_name] %>
+                    <%= opponent_name %>
                   </div>
                 </div>
                 <div class="next-game-datetime">
                   <%= Date.parse(@dashboard[:next_game][:date]).strftime("%A, %B %d at %I:%M %p") rescue @dashboard[:next_game][:date] %>
                 </div>
+                <% if venue.present? %>
+                  <div class="next-game-channel" style="margin-bottom: 4px;"><%= venue %></div>
+                <% end %>
                 <% if @dashboard[:next_game][:channel].present? %>
                   <div class="next-game-channel"><%= @dashboard[:next_game][:channel] %></div>
                 <% end %>
@@ -82,8 +93,16 @@
                     <% end %>
                   </div>
                 <% end %>
-              </div>
-            <% end %>
+              <% else %>
+                <div class="text-center py-6" style="color: var(--text-muted);">
+                  <svg style="width: 48px; height: 48px; margin: 0 auto 12px; opacity: 0.5;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                  </svg>
+                  <p style="font-size: 14px; margin-bottom: 4px;">Season Ended</p>
+                  <p style="font-size: 12px; opacity: 0.7;">No upcoming games scheduled</p>
+                </div>
+              <% end %>
+            </div>
 
             <!-- Injury Report Card -->
             <% if @dashboard[:injuries].present? && @dashboard[:injuries].any? %>

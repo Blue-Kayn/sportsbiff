@@ -56,6 +56,7 @@ class TeamDashboardWebService
           "opponent_name": "<full team name>",
           "is_home": <boolean>,
           "date": "<date string>",
+          "venue": "<stadium name>",
           "channel": "<TV channel>",
           "spread": <number or null>,
           "over_under": <number or null>
@@ -96,9 +97,11 @@ class TeamDashboardWebService
 
       IMPORTANT:
       - Return ONLY the JSON, no explanation or markdown
-      - Use current 2024-2025 NFL season data
+      - TODAY'S DATE IS #{Date.current.strftime('%B %d, %Y')} - use this to determine what games are upcoming vs past
+      - Use current 2024-2025 NFL season data (regular season ended, now in playoffs January 2025)
+      - For next_game: ONLY include games scheduled AFTER today. If the team's season is over (eliminated or season ended), set next_game to null
       - Include only top 3 injuries by importance
-      - Include only last 5 games in recent_results
+      - Include only last 5 games in recent_results (most recent first)
       - Include only top 3 news items
       - For standings, include only the team's division (4 teams)
     PROMPT
@@ -127,16 +130,16 @@ class TeamDashboardWebService
 
   def build_dashboard_query(team_name)
     <<~QUERY
-      Get current #{team_name} NFL data:
-      1. Current record (wins-losses-ties) and division standing
-      2. Next upcoming game with opponent, date, TV channel, and betting odds (spread, over/under)
+      Get current #{team_name} NFL data as of #{Date.current.strftime('%B %d, %Y')}:
+      1. Final 2024-2025 regular season record (wins-losses-ties) and division standing
+      2. Next upcoming game AFTER #{Date.current.strftime('%B %d, %Y')} (playoff game if applicable) with opponent, date, TV channel, and betting odds. If the team is eliminated or season is over, say "season ended"
       3. Current injury report (key players, status)
-      4. Full division standings
+      4. Full division standings (final regular season)
       5. Against-the-spread betting record this season
-      6. Last 5 game results with scores
+      6. Last 5 game results with scores (most recent first)
       7. Team statistics: points per game, points allowed, offensive/defensive yards, league rankings
       8. Top statistical leaders: QB passing yards, RB rushing yards, WR receiving yards
-      9. Latest 3 news headlines about the team
+      9. Latest 3 news headlines about the team from the past week
     QUERY
   end
 
